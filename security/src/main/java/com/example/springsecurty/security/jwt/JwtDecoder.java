@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-    public class JwtDecoder {
+public class JwtDecoder {
     private final JwtTokenUtils jwtTokenUtils;
 
     public String decodeUsername(String token){
@@ -24,6 +24,11 @@ import org.springframework.stereotype.Component;
         }
 
         return decodedJWT.getClaim(jwtTokenUtils.CLAIM_USER_NAME).asString();
+    }
+
+    public long getExpireTime(String refreshToken){
+        DecodedJWT decodedJWT = isValidToken(refreshToken);
+        return decodedJWT.getClaim(jwtTokenUtils.CLAIM_EXPIRED_DATE).asLong() * 1000;
     }
 
 

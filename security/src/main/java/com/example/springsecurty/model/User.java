@@ -24,6 +24,9 @@ public class User {
     private String password;
 
     @Column
+    private String refreshToken;
+
+    @Column
     @Enumerated(EnumType.STRING)
     private AuthType type = AuthType.USER;
 
