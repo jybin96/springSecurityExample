@@ -2,7 +2,6 @@ package com.example.springsecurty.security;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import javafx.util.Pair;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -13,7 +12,7 @@ public class FilterSkipMatcher implements RequestMatcher {
     private final OrRequestMatcher orRequestMatcher;
     private final RequestMatcher processingMatcher;
 
-    public FilterSkipMatcher(List<Pair<HttpMethod, String>> pathToSkips, String processingPath){
+    public FilterSkipMatcher(List<Path> pathToSkips, String processingPath){
         this.orRequestMatcher = new OrRequestMatcher(pathToSkips
                 .stream()
                 .map(this::httpPath)
@@ -22,8 +21,8 @@ public class FilterSkipMatcher implements RequestMatcher {
         this.processingMatcher = new AntPathRequestMatcher(processingPath);
     }
 
-    AntPathRequestMatcher httpPath(Pair<HttpMethod, String> pathToSkip){
-        return new AntPathRequestMatcher(pathToSkip.getValue(), pathToSkip.getKey().toString());
+    AntPathRequestMatcher httpPath(Path pathToSkip){
+        return new AntPathRequestMatcher(pathToSkip.getUrl(), pathToSkip.getHttpMethod().toString());
     }
 
     @Override

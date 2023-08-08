@@ -9,8 +9,8 @@ import com.example.springsecurty.security.provider.FormLoginAuthProvider;
 import com.example.springsecurty.security.provider.JWTAuthProvider;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.util.Pair;
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +25,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -38,6 +41,8 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
+                .cors().configurationSource(corsConfigurationSource())
+                .and()
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
@@ -55,10 +60,22 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-//    @Bean
-//    public WebSecurityCustomizer webSecurityCustomizer(){
-//        return (web) -> web.ignoring().antMatchers("/h2-console/**");
-//    }
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOrigin("http://localhost:5173"); // local 테스트 시
+        configuration.setAllowCredentials(true);
+        configuration.addAllowedMethod("*");
+        configuration.addAllowedHeader("*");
+        configuration.addExposedHeader("*");
+        configuration.addExposedHeader("Access_Token");
+        configuration.addExposedHeader("Refresh_Token");
+        configuration.addAllowedOriginPattern("*"); // 배포 전 모두 허용
+        val source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
+    }
 
     @Autowired
     void registerProvider(AuthenticationManagerBuilder auth){
@@ -75,9 +92,8 @@ public class SecurityConfig {
     }
 
     JwtAuthFilter jwtAuthFilter(AuthenticationManager authenticationManager){
-        List<Pair<HttpMethod, String>> skipPathList = new ArrayList<>();
-        Pair<HttpMethod, String> pair = new Pair<>(HttpMethod.POST, "/user");
-        skipPathList.add(pair);
+        List<Path> skipPathList = new ArrayList<>();
+        skipPathList.add(new Path(HttpMethod.POST, "/user/login"));
 
         FilterSkipMatcher matcher = new FilterSkipMatcher(skipPathList, "/**");
         JwtAuthFilter filter = new JwtAuthFilter(matcher, extractor);
